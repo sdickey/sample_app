@@ -9,6 +9,7 @@ class UsersController < ApplicationController
 
   def show
   	@user = User.find(params[:id])
+    @microposts = @user.microposts.paginate(page: params[:page])
   end
 
   def new
@@ -27,9 +28,13 @@ class UsersController < ApplicationController
   end
 
   def destroy
-    User.find(params[:id]).destroy
-    flash[:success] = "User obliterated. Via con dios."
-    redirect_to users_url
+    if User.find(params[:id]) == current_user
+      flash[:error] = "Yo, bonehead. You can't delete yourself."
+    else
+      User.find(params[:id]).destroy
+      flash[:success] = "User obliterated. Via con dios."
+      redirect_to users_url
+    end
   end
 
   def edit
@@ -52,13 +57,6 @@ class UsersController < ApplicationController
   	end
 
     # Before filters
-
-    def signed_in_user
-      unless signed_in?
-        store_location
-        redirect_to signin_url, notice: "Please sign in." unless signed_in?
-      end
-    end
 
     def correct_user
       @user = User.find(params[:id])
